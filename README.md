@@ -8,8 +8,7 @@
 
 **Creators:** Pranav , Jimmy, Grady
 
-  ![IRL Build](<img width="1600" height="1200" alt="image" src="https://github.com/user-attachments/assets/87e8be69-1c92-41aa-955f-f685aeb3d36f" />
-)
+  ![IRL Build](https://github.com/Pnav22/DDR-BOP-Console/blob/main/Demo_Image.jpeg)
 
 ---
 
