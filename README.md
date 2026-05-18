@@ -8,9 +8,7 @@
 
 **Creators:** Pranav , Jimmy, Grady
 
-CAD                         |  IRL
-:-------------------------:|:-------------------------:
-![CAD Render](https://github.com/user-attachments/assets/e403affb-7970-4bed-9cbd-e9603c1d197d)  |  ![IRL Build](https://github.com/user-attachments/assets/d6193cea-4018-44f9-b0c1-3cdec59d902c)
+  ![IRL Build](https://github.com/user-attachments/assets/d6193cea-4018-44f9-b0c1-3cdec59d902c)
 
 ---
 
@@ -30,10 +28,8 @@ Colors fall down a LED and when those LEDS entire a specific section they can be
 
 ## Design
 
-Cad can be viewed [here](https://cad.onshape.com/documents/1f07b48c7f0c844885f208f0/w/35ef43929f689d5c59df734c/e/4c060ffb7e05090ceb09d7bd?renderMode=0&uiState=6873fecd0579b80fab54201e).
-
-<img height="640" alt="SpiderCAD" src="https://github.com/user-attachments/assets/bea3b32c-5225-448c-92d8-1fc45c49b6b2" />
-
+Cad can be viewed in the CAD folder.
+Code can be viewed in the CODE folder. 
 ---
 
 
