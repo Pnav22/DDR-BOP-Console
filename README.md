@@ -8,7 +8,8 @@
 
 **Creators:** Pranav , Jimmy, Grady
 
-  ![IRL Build](https://github.com/user-attachments/assets/d6193cea-4018-44f9-b0c1-3cdec59d902c)
+  ![IRL Build](<img width="1600" height="1200" alt="image" src="https://github.com/user-attachments/assets/87e8be69-1c92-41aa-955f-f685aeb3d36f" />
+)
 
 ---
 
