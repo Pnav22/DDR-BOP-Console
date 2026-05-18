@@ -1,6 +1,6 @@
-# DDR-BOP-Console TBP Console
+# TBP Console (DDR-BOP-Console) 
 
-**TBP Console** is a DDR inspired game with huge buttons and foot pedals. The project also contains lots of extra elements such as scores, sound, and .
+**TBP Console** is a DDR inspired custom game console with huge buttons and foot pedals. This project was made at a 72 hour hardware hackathon held in Austin Tx.  The project also contains lots of extra elements such as scores, sound, and dancing characters.
 
 ## Demo Video
  [Watch it here on YouTube]()
