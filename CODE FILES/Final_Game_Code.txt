@@ -1,0 +1,1134 @@
+#include <FastLED.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal_PCF8574.h>
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
+#include <AnimatedGIF.h>
+
+
+
+
+#define I2C2_SDA 16
+#define I2C2_SCL 17
+#define I2C_SDA 21
+#define I2C_SCL 22
+
+
+
+
+
+
+LiquidCrystal_PCF8574 lcd1(0x27);
+LiquidCrystal_PCF8574 lcd2(0x27);
+
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+#define LED_PIN 15
+#define NUM_LEDS 256
+
+
+
+
+
+
+
+
+unsigned long lastA = 0;
+unsigned long lastB = 0;
+unsigned long lastC = 0;
+
+
+//------------------------------------------------------
+char lastKey = '\0';
+unsigned long lastKeyTime = 0;
+
+
+
+
+
+
+
+
+//------------------------------------------------------
+int ww(int row) {
+  int sum = 0;
+  if (!row % 2 == 0) {
+    sum = 7;
+  }
+  return (row * 8 + sum);
+}
+int wr(int row) {
+  int sum = 1;
+  if (!row % 2 == 0) {
+    sum = 6;
+  }
+  return (row * 8 + sum);
+}
+int wb(int row) {
+  int sum = 2;
+  if (!row % 2 == 0) {
+    sum = 5;
+  }
+  return (row * 8 + sum);
+}
+int wg(int row) {
+  int sum = 3;
+  if (!row % 2 == 0) {
+    sum = 4;
+  }
+  return (row * 8 + sum);
+}
+int wp(int row) {
+  int sum = 4;
+  if (!row % 2 == 0) {
+    sum = 3;
+  }
+  return (row * 8 + sum);
+}
+int wc(int row) {
+  int sum = 5;
+  if (!row % 2 == 0) {
+    sum = 2;
+  }
+  return (row * 8 + sum);
+}
+int wy(int row) {
+  int sum = 6;
+  if (!row % 2 == 0) {
+    sum = 1;
+  }
+  return (row * 8 + sum);
+}
+//------------------------------------------------------
+
+
+const char* ssid = "Phone";
+const char* password = "Ginny2017";
+
+
+
+
+WebServer server(80);
+
+
+void handleKey() {
+  String key = server.arg("key");
+
+
+
+
+  Serial.print("Key received: ");
+  Serial.println(key);
+
+
+
+
+  if (key == "a") {
+    lastA = millis();
+  }
+  if (key == "b") {
+    lastB = millis();
+  }
+  if (key == "c") {
+    lastC = millis();
+  }
+
+
+
+
+  server.send(200, "text/plain", "OK");
+}
+//----------------------------------------------------------
+
+
+
+
+
+
+
+
+CRGB leds[NUM_LEDS];
+
+
+
+
+int score = 0;
+int health = 1000;
+
+
+
+
+
+
+
+
+CRGB colors[] = {
+  CRGB::White,
+  CRGB::Red,
+  CRGB::Blue,
+  CRGB::Green,
+  CRGB::Purple,
+  CRGB::Cyan,
+  CRGB::Yellow,
+  CRGB::Orange
+};
+
+
+
+
+
+
+
+
+const int whiteBut = 27;
+const int redBut = 26;
+const int greenBut = 25;
+const int blueBut = 19;
+
+
+
+
+void setup() {
+  Serial.begin(115200);
+
+
+  WiFi.begin(ssid, password);
+
+
+
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting...");
+    Serial.print("ESP32 IP: ");
+    Serial.println(WiFi.localIP());
+  }
+
+
+
+
+  Serial.print("ESP32 IP: ");
+  Serial.println(WiFi.localIP());
+
+
+
+
+  server.on("/key", handleKey);
+  server.begin();
+
+
+
+
+
+
+  Wire.begin(I2C_SDA, I2C_SCL, 100000);
+  //lcd1.init();
+  //lcd1.backlight();
+  lcd1.begin(16, 2, Wire);
+  lcd1.setBacklight(130);
+  lcd1.setCursor(0, 0);
+  lcd1.print("DDR: Starting");
+  Wire1.begin(I2C2_SDA, I2C2_SCL, 100000);
+  //lcd2.init();
+  //lcd2.backlight();
+  lcd2.begin(16, 2, Wire1);
+  lcd2.setBacklight(130);
+  lcd2.setCursor(0, 0);
+  lcd2.print("TEST");
+  delay(1000);
+  for (int pos = 0; pos < 16; pos++) {
+    lcd1.scrollDisplayRight();
+    delay(350);
+  }
+  lcd1.clear();
+  lcd2.clear();
+
+
+
+
+  score = 0;
+  health = 1000;
+
+
+
+
+
+
+
+
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setBrightness(30);
+
+
+
+
+
+
+
+
+  pinMode(whiteBut, INPUT_PULLUP);
+  pinMode(redBut, INPUT_PULLUP);
+  pinMode(greenBut, INPUT_PULLUP);
+  pinMode(blueBut, INPUT_PULLUP);
+
+
+
+
+  randomSeed(analogRead(0));
+
+
+
+
+
+
+
+
+  FastLED.show();
+}
+
+
+
+
+
+
+int checkWhite(int top, int n) {
+  int num = n + 1;
+  for (int i = top - 7; i <= top; i++) {
+    if (leds[i] == CRGB::White) {
+      checkWhite(top - 8, num);
+    }
+  }
+  Serial.println("n: " + n);
+  return n;
+}
+
+
+
+
+// int checkWhite(int ind, bool tf, int sum){
+//   if(leds[ind]==CRGB::White){
+//     Serial.print(sum);
+//     if(tf){
+//     if(leds[ind-15]==CRGB::White){
+//       sum+=ind;
+//       checkWhite(ind-15,!tf,sum);
+//     }else{
+//       return sum;
+//     }
+//   }else{
+//     if(leds[ind-1]==CRGB::White){
+//       sum+=ind;
+//       checkWhite(ind-1,!tf,sum);
+//     }else{
+//       return sum;
+//     }
+//   }
+//   }
+// }
+void msgs() {
+  String mg[] = {
+    "Congrats",
+    "Yay",
+    "Wow",
+    "You Rock",
+    "Awsome",
+    "Good Shii",
+  };
+  int t = random(0, sizeof(mg) / sizeof(mg[0]));
+  lcd2.setCursor(0, 1);
+ 
+  lcd2.print(mg[t]);
+}
+int INIT_SPEED = 900;
+int speed = INIT_SPEED;
+
+
+
+
+//---------------------------------------------
+//---------------------------------------------
+//---------------------------------------------
+
+
+
+
+void loop() {
+
+
+  msgs();
+
+
+  lcd1.setCursor(0, 0);
+  lcd1.print("Score: ");
+  lcd1.print(score);
+  lcd1.print("       ");
+  lcd2.setCursor(0, 0);
+  lcd2.setCursor(0, 0);
+  lcd2.print("Runtime: ");
+  lcd2.print(millis() / 1000);
+  lcd2.print("     ");
+  lcd1.setCursor(0, 1);
+  lcd1.print("STASIS");
+
+
+  int temp = random(0, 7);
+  int h = 0;
+  if (temp == 0) {
+    h = 15;
+  } else if (temp == 1) {
+    h = 14;
+  } else if (temp == 2) {
+    h = 13;
+  } else if (temp == 3) {
+    h = 12;
+  } else if (temp == 4) {
+    h = 11;
+  } else if (temp == 5) {
+    h = 10;
+  } else if (temp == 6) {
+    h = 9;
+  }
+  leds[temp] = colors[temp];
+  leds[h] = colors[temp];
+
+
+  server.handleClient();
+  //-----------------------------------------------
+
+
+
+
+  while (Serial.available() > 0) {
+    lastKey = Serial.read();
+    lastKeyTime = millis();
+
+
+    if (lastKey == 'a') {
+      Serial.println("A pressed");
+    }
+
+
+    if (lastKey == 'b') {
+      Serial.println("B pressed");
+    }
+
+
+    if (lastKey == 'c') {
+      Serial.println("C pressed");
+    }
+  }
+
+
+
+
+
+
+
+
+  //------------------------------------------------------
+  //CORRECT
+  //------------------------------------------------------
+
+
+
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  //move down first time
+
+
+  for (int i = NUM_LEDS - 1; i >= 9; i -= 16) {
+    if (leds[i - 15] == CRGB::White) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::White;
+      leds[i - 15] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::White) {
+        leds[i - 15] = CRGB::White;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 2; i >= 9; i -= 16) {
+    if (leds[i - 13] == CRGB::Red) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Red;
+      leds[i - 13] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Red) {
+        leds[i - 13] = CRGB::Red;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 3; i >= 9; i -= 16) {
+    if (leds[i - 11] == CRGB::Blue) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Blue;
+      leds[i - 11] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Blue) {
+        leds[i - 11] = CRGB::Blue;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 4; i >= 9; i -= 16) {
+    if (leds[i - 9] == CRGB::Green) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Green;
+      leds[i - 9] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Green) {
+        leds[i - 9] = CRGB::Green;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 5; i >= 9; i -= 16) {
+    if (leds[i - 7] == CRGB::Purple) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Purple;
+      leds[i - 7] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Purple) {
+        leds[i - 7] = CRGB::Purple;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 6; i >= 9; i -= 16) {
+    if (leds[i - 5] == CRGB::Cyan) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Cyan;
+      leds[i - 5] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Cyan) {
+        leds[i - 5] = CRGB::Cyan;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 7; i >= 9; i -= 16) {
+    if (leds[i - 3] == CRGB::Yellow) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Yellow;
+      leds[i - 3] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Yellow) {
+        leds[i - 3] = CRGB::Yellow;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+
+
+
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  //check button first time
+
+
+  FastLED.show();
+  delay(speed / 2);
+
+
+  if (lastKey == 'z') {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i] = CRGB::Black;
+    }
+    score = 0;
+    speed = INIT_SPEED;
+  }
+
+
+
+
+
+
+  if (digitalRead(whiteBut) == LOW) {
+    Serial.println("white Button pressed");
+    // if(leds[NUM_LEDS-14]==CRGB::Blue){
+    //   leds[NUM_LEDS-14]==CRGB::Black;
+    // }
+    if (leds[NUM_LEDS - 1] == CRGB::White || leds[NUM_LEDS - 16] == CRGB::White || leds[NUM_LEDS - 17] == CRGB::White) {
+      leds[NUM_LEDS - 1] = CRGB::Black;
+      leds[NUM_LEDS - 15] = CRGB::Black;
+      leds[NUM_LEDS - 16] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+  }
+  if (digitalRead(redBut) == LOW) {
+    if (leds[NUM_LEDS - 2] == CRGB::Red || leds[NUM_LEDS - 15] == CRGB::Red || leds[NUM_LEDS - 18] == CRGB::Red) {
+      leds[NUM_LEDS - 2] = CRGB::Black;
+      leds[NUM_LEDS - 15] = CRGB::Black;
+      leds[NUM_LEDS - 18] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("red Button pressed");
+  }
+  if (digitalRead(blueBut) == LOW) {
+    if (leds[NUM_LEDS - 3] == CRGB::Blue || leds[NUM_LEDS - 14] == CRGB::Blue || leds[NUM_LEDS - 19] == CRGB::Blue) {
+      leds[NUM_LEDS - 3] = CRGB::Black;
+      leds[NUM_LEDS - 14] = CRGB::Black;
+      leds[NUM_LEDS - 19] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("green Button pressed");
+  }
+  if (digitalRead(greenBut) == LOW) {
+    if (leds[NUM_LEDS - 4] == CRGB::Green || leds[NUM_LEDS - 13] == CRGB::Green || leds[NUM_LEDS - 20] == CRGB::Green) {
+      leds[NUM_LEDS - 4] = CRGB::Black;
+      leds[NUM_LEDS - 13] = CRGB::Black;
+      leds[NUM_LEDS - 20] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("blue Button pressed");
+  }
+  if (lastKey == 'c') {
+    if (leds[NUM_LEDS - 5] == CRGB::Purple || leds[NUM_LEDS - 12] == CRGB::Purple || leds[NUM_LEDS - 21] == CRGB::Purple) {
+      leds[NUM_LEDS - 5] = CRGB::Black;
+      leds[NUM_LEDS - 12] = CRGB::Black;
+      leds[NUM_LEDS - 21] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("purple Button pressed");
+  }
+  if (lastKey == 'b') {
+    if (leds[NUM_LEDS - 6] == CRGB::Cyan || leds[NUM_LEDS - 11] == CRGB::Cyan || leds[NUM_LEDS - 22] == CRGB::Cyan) {
+      leds[NUM_LEDS - 6] = CRGB::Black;
+      leds[NUM_LEDS - 11] = CRGB::Black;
+      leds[NUM_LEDS - 22] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("cyan Button pressed");
+  }
+  if (lastKey == 'a') {
+    if (leds[NUM_LEDS - 7] == CRGB::Yellow || leds[NUM_LEDS - 10] == CRGB::Yellow || leds[NUM_LEDS - 23] == CRGB::Yellow) {
+      leds[NUM_LEDS - 7] = CRGB::Black;
+      leds[NUM_LEDS - 10] = CRGB::Black;
+      leds[NUM_LEDS - 23] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("yellow Button pressed");
+  }
+
+
+
+
+
+
+  for (int i = 255; i >= 248; i--) {
+    leds[i] = CRGB::Black;
+  }
+  FastLED.show();
+
+
+  //------------------------------------------------------
+  //CORRECT
+  //------------------------------------------------------
+
+
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+  // leds[temp] = colors[temp];
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+  //move down leds second time
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  for (int i = NUM_LEDS - 1; i >= 9; i -= 16) {
+    if (leds[i - 15] == CRGB::White) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::White;
+      leds[i - 15] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::White) {
+        leds[i - 15] = CRGB::White;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 2; i >= 9; i -= 16) {
+    if (leds[i - 13] == CRGB::Red) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Red;
+      leds[i - 13] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Red) {
+        leds[i - 13] = CRGB::Red;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 3; i >= 9; i -= 16) {
+    if (leds[i - 11] == CRGB::Blue) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Blue;
+      leds[i - 11] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Blue) {
+        leds[i - 11] = CRGB::Blue;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 4; i >= 9; i -= 16) {
+    if (leds[i - 9] == CRGB::Green) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Green;
+      leds[i - 9] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Green) {
+        leds[i - 9] = CRGB::Green;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 5; i >= 9; i -= 16) {
+    if (leds[i - 7] == CRGB::Purple) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Purple;
+      leds[i - 7] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Purple) {
+        leds[i - 7] = CRGB::Purple;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 6; i >= 9; i -= 16) {
+    if (leds[i - 5] == CRGB::Cyan) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Cyan;
+      leds[i - 5] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Cyan) {
+        leds[i - 5] = CRGB::Cyan;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+  for (int i = NUM_LEDS - 7; i >= 9; i -= 16) {
+    if (leds[i - 3] == CRGB::Yellow) {
+
+
+
+
+
+
+
+
+      leds[i] = CRGB::Yellow;
+      leds[i - 3] = CRGB::Black;
+    }
+    if (i >= 16) {
+      if (leds[i - 16] == CRGB::Yellow) {
+        leds[i - 3] = CRGB::Yellow;
+        leds[i - 16] = CRGB::Black;
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+  //---------------------------------------------------------
+  //Buttons second time:
+  //---------------------------------------------------------
+
+
+
+
+  //delay(speed/2);
+
+
+  if (digitalRead(whiteBut) == LOW) {
+    Serial.println("white Button pressed");
+    // if(leds[NUM_LEDS-14]==CRGB::Blue){
+    //   leds[NUM_LEDS-14]==CRGB::Black;
+    // }
+    if (leds[NUM_LEDS - 1] == CRGB::White || leds[NUM_LEDS - 16] == CRGB::White || leds[NUM_LEDS - 17] == CRGB::White) {
+      leds[NUM_LEDS - 1] = CRGB::Black;
+      leds[NUM_LEDS - 15] = CRGB::Black;
+      leds[NUM_LEDS - 16] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+  }
+  if (digitalRead(redBut) == LOW) {
+    if (leds[NUM_LEDS - 2] == CRGB::Red || leds[NUM_LEDS - 15] == CRGB::Red || leds[NUM_LEDS - 18] == CRGB::Red) {
+      leds[NUM_LEDS - 2] = CRGB::Black;
+      leds[NUM_LEDS - 15] = CRGB::Black;
+      leds[NUM_LEDS - 18] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("red Button pressed");
+  }
+  if (digitalRead(blueBut) == LOW) {
+    if (leds[NUM_LEDS - 3] == CRGB::Blue || leds[NUM_LEDS - 14] == CRGB::Blue || leds[NUM_LEDS - 19] == CRGB::Blue) {
+      leds[NUM_LEDS - 3] = CRGB::Black;
+      leds[NUM_LEDS - 14] = CRGB::Black;
+      leds[NUM_LEDS - 19] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("green Button pressed");
+  }
+  if (digitalRead(greenBut) == LOW) {
+    if (leds[NUM_LEDS - 4] == CRGB::Green || leds[NUM_LEDS - 13] == CRGB::Green || leds[NUM_LEDS - 20] == CRGB::Green) {
+      leds[NUM_LEDS - 4] = CRGB::Black;
+      leds[NUM_LEDS - 13] = CRGB::Black;
+      leds[NUM_LEDS - 20] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("blue Button pressed");
+  }
+  if (lastKey == 'c') {
+    if (leds[NUM_LEDS - 5] == CRGB::Purple || leds[NUM_LEDS - 12] == CRGB::Purple || leds[NUM_LEDS - 21] == CRGB::Purple) {
+      leds[NUM_LEDS - 5] = CRGB::Black;
+      leds[NUM_LEDS - 12] = CRGB::Black;
+      leds[NUM_LEDS - 21] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("purple Button pressed");
+  }
+  if (lastKey == 'b') {
+    if (leds[NUM_LEDS - 6] == CRGB::Cyan || leds[NUM_LEDS - 11] == CRGB::Cyan || leds[NUM_LEDS - 22] == CRGB::Cyan) {
+      leds[NUM_LEDS - 6] = CRGB::Black;
+      leds[NUM_LEDS - 11] = CRGB::Black;
+      leds[NUM_LEDS - 22] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("cyan Button pressed");
+  }
+  if (lastKey == 'a') {
+    if (leds[NUM_LEDS - 7] == CRGB::Yellow || leds[NUM_LEDS - 10] == CRGB::Yellow || leds[NUM_LEDS - 23] == CRGB::Yellow) {
+      leds[NUM_LEDS - 7] = CRGB::Black;
+      leds[NUM_LEDS - 10] = CRGB::Black;
+      leds[NUM_LEDS - 23] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("yellow Button pressed");
+  }
+
+
+
+
+  //-----------------------------------------------
+
+
+
+
+
+
+
+
+
+
+  if (digitalRead(whiteBut) == LOW) {
+    Serial.println("white Button pressed");
+    // if(leds[NUM_LEDS-14]==CRGB::Blue){
+    //   leds[NUM_LEDS-14]==CRGB::Black;
+    // }
+    if (leds[NUM_LEDS - 1] == CRGB::White || leds[NUM_LEDS - 16] == CRGB::White || leds[NUM_LEDS - 17] == CRGB::White) {
+      leds[NUM_LEDS - 1] = CRGB::Black;
+      leds[NUM_LEDS - 15] = CRGB::Black;
+      leds[NUM_LEDS - 16] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+  }
+  if (digitalRead(redBut) == LOW) {
+    if (leds[NUM_LEDS - 2] == CRGB::Red || leds[NUM_LEDS - 15] == CRGB::Red || leds[NUM_LEDS - 18] == CRGB::Red) {
+      leds[NUM_LEDS - 2] = CRGB::Black;
+      leds[NUM_LEDS - 15] = CRGB::Black;
+      leds[NUM_LEDS - 18] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("red Button pressed");
+  }
+  if (digitalRead(blueBut) == LOW) {
+    if (leds[NUM_LEDS - 3] == CRGB::Blue || leds[NUM_LEDS - 14] == CRGB::Blue || leds[NUM_LEDS - 19] == CRGB::Blue) {
+      leds[NUM_LEDS - 3] = CRGB::Black;
+      leds[NUM_LEDS - 14] = CRGB::Black;
+      leds[NUM_LEDS - 19] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("green Button pressed");
+  }
+  if (digitalRead(greenBut) == LOW) {
+    if (leds[NUM_LEDS - 4] == CRGB::Green || leds[NUM_LEDS - 13] == CRGB::Green || leds[NUM_LEDS - 20] == CRGB::Green) {
+      leds[NUM_LEDS - 4] = CRGB::Black;
+      leds[NUM_LEDS - 13] = CRGB::Black;
+      leds[NUM_LEDS - 20] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("blue Button pressed");
+  }
+  if (lastKey == 'c') {
+    if (leds[NUM_LEDS - 5] == CRGB::Purple || leds[NUM_LEDS - 12] == CRGB::Purple || leds[NUM_LEDS - 21] == CRGB::Purple) {
+      leds[NUM_LEDS - 5] = CRGB::Black;
+      leds[NUM_LEDS - 12] = CRGB::Black;
+      leds[NUM_LEDS - 21] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("purple Button pressed");
+  }
+  if (lastKey == 'b') {
+    if (leds[NUM_LEDS - 6] == CRGB::Cyan || leds[NUM_LEDS - 11] == CRGB::Cyan || leds[NUM_LEDS - 22] == CRGB::Cyan) {
+      leds[NUM_LEDS - 6] = CRGB::Black;
+      leds[NUM_LEDS - 11] = CRGB::Black;
+      leds[NUM_LEDS - 22] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("cyan Button pressed");
+  }
+  if (lastKey == 'a') {
+    if (leds[NUM_LEDS - 7] == CRGB::Yellow || leds[NUM_LEDS - 10] == CRGB::Yellow || leds[NUM_LEDS - 23] == CRGB::Yellow) {
+      leds[NUM_LEDS - 7] = CRGB::Black;
+      leds[NUM_LEDS - 10] = CRGB::Black;
+      leds[NUM_LEDS - 23] = CRGB::Black;
+      score++;
+
+
+      FastLED.show();
+    }
+    Serial.println("yellow Button pressed");
+  }
+
+
+
+
+
+
+  FastLED.show();
+
+
+  delay(speed / 2);
+
+
+
+
+
+
+
+
+
+
+  for (int i = 0; i < 8; i++) {
+    leds[i] = CRGB::Black;
+  }
+  for (int i = 255; i >= 248; i--) {
+    leds[i] = CRGB::Black;
+  }
+
+
+
+
+  if (speed > 150) {
+    speed -= 2;
+  }
+  Serial.print("Speed: ");
+  Serial.println(speed);
+
+
+
+
+  lastKey = 'd';
+  lcd2.clear();
+}
+
+
+
+
+
