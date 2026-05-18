@@ -1,0 +1,54 @@
+# DDR-BOP-Console TBP Console
+
+**TBP Console** is a DDR inspired game with huge buttons and foot pedals. The project also contains lots of extra elements such as scores, sound, and .
+
+## Demo Video
+ [Watch it here on YouTube]()
+
+
+**Creators:** Pranav , Jimmy, Grady
+
+CAD                         |  IRL
+:-------------------------:|:-------------------------:
+![CAD Render](https://github.com/user-attachments/assets/e403affb-7970-4bed-9cbd-e9603c1d197d)  |  ![IRL Build](https://github.com/user-attachments/assets/d6193cea-4018-44f9-b0c1-3cdec59d902c)
+
+---
+
+## Button Mechanism
+
+Colors fall down a LED and when those LEDS entire a specific section they can be "pressed" by a physical button with a corresponding colors. The combination of pressing and colors make up the game. The game also has foot pedals to introduce 3 new sources of input. 
+- **Bendable LED MATRIX Panel**: Shows falling colors  
+- **2 inch LCD Screen**: Used to display dancing characters
+- **LCD1602 Display Module** Used to display scores and boosts!
+- **4inch Arcade Buttons** Used as input to play the game
+- **Foot Pedals** Used for further input. 
+
+
+---
+
+
+## Design
+
+Cad can be viewed [here](https://cad.onshape.com/documents/1f07b48c7f0c844885f208f0/w/35ef43929f689d5c59df734c/e/4c060ffb7e05090ceb09d7bd?renderMode=0&uiState=6873fecd0579b80fab54201e).
+
+<img height="640" alt="SpiderCAD" src="https://github.com/user-attachments/assets/bea3b32c-5225-448c-92d8-1fc45c49b6b2" />
+
+Read Journal.md to see our engineering process!
+---
+
+
+## Bill of Materials
+
+| Item                  | Quantity |
+|-----------------------|----------|
+| SG90 Servo Motor      | 5        |
+| MG996R Servo          | 5        |
+| ESP32 DevKit C        | 1        |
+| Breadboard            | 1        |
+| Male to Male Jumper Wires | 30       |
+| 3S LiPo Battery       | 1        |
+| 12V to 5V Buck Converter | 1        |
+| PLA (kgs)             | 1        |
+| N20 Motor             | 2        |
+| XT60 Male Connector   | 1        |
+
